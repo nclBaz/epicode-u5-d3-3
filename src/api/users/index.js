@@ -37,4 +37,33 @@ usersRouter.get("/:userId", async (req, res, next) => {
   }
 })
 
+usersRouter.put("/:userId", async (req, res, next) => {
+  try {
+    const [numberOfUpdatedRows, updatedRecords] = await UsersModel.update(req.body, {
+      where: { id: req.params.userId },
+      returning: true,
+    })
+    if (numberOfUpdatedRows === 1) {
+      res.send(updatedRecords[0])
+    } else {
+      next(createHttpError(404, `User with id ${req.params.userId} not found!`))
+    }
+  } catch (error) {
+    next(error)
+  }
+})
+
+usersRouter.delete("/:userId", async (req, res, next) => {
+  try {
+    const numberOfDeletedRows = await UsersModel.destroy({ where: { id: req.params.userId } })
+    if (numberOfDeletedRows === 1) {
+      res.status(204).send()
+    } else {
+      next(createHttpError(404, `User with id ${req.params.userId} not found!`))
+    }
+  } catch (error) {
+    next(error)
+  }
+})
+
 export default usersRouter
