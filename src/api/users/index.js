@@ -1,5 +1,6 @@
 import express from "express"
 import createHttpError from "http-errors"
+import { Op } from "sequelize"
 import UsersModel from "./model.js"
 
 const usersRouter = express.Router()
@@ -15,7 +16,12 @@ usersRouter.post("/", async (req, res, next) => {
 
 usersRouter.get("/", async (req, res, next) => {
   try {
-    const users = await UsersModel.findAll({ attributes: ["firstName", "lastName"] }) // (SELECT) pass an array for the include list
+    const query = {}
+    if (req.query.firstName) query.firstName = { [Op.iLike]: `${req.query.firstName}%` }
+    const users = await UsersModel.findAll({
+      where: { ...query },
+      attributes: ["firstName", "lastName"],
+    }) // (SELECT) pass an array for the include list
     res.send(users)
   } catch (error) {
     next(error)
